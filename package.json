@@ -1,0 +1,25 @@
+{
+  "name": "lorenz-attractor-3d",
+  "version": "1.0.0",
+  "description": "Lorenz attractor generator in 3D",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adelriosantiago/lorenz-attractor-3d.git"
+  },
+  "keywords": [
+    "strange",
+    "attractor",
+    "attractor",
+    "procedural",
+    "chaos",
+    "generator",
+    "3d"
+  ],
+  "author": "Alejandro del Río Santiago <adelriosantiago@gmail.com> (http://www.adelriosantiago.com)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/adelriosantiago/lorenz-attractor-3d/issues"
+  },
+  "homepage": "https://github.com/adelriosantiago/lorenz-attractor-3d#readme"
+}
