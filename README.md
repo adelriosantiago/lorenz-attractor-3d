@@ -8,14 +8,14 @@ This generates the Lorenz attractor points for a third dimensional space.
 
 ## Usage
 
-```js
-import lorenz = require("lorenz-attractor-3d")
+Use `import lorenz = require("lorenz-attractor-3d")` or `<script src="lorenz.build.js"></script>` for browsers. Then,
 
-lorenz.init() // Init with default values, or
+```js
+lorenz.init(); // Init with default values, or
 //lorenz.init(sigma, beta, rho, initX, initY, initZ, stepSize) //Init with other initial conditions
-lorenz.next() // Generate next value, or
+lorenz.next(); // Generate next value, or
 //lorenz.next(999) // Generate next 999 values
-const points = lorenz.points() // Return array of points
+const points = lorenz.points(); // Return array of points
 ```
 
 If you want to visualize the actual points in a third dimensional you can use [Three.JS](https://threejs.org/) or any other 3D engine.

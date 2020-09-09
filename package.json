@@ -2,7 +2,10 @@
   "name": "lorenz-attractor-3d",
   "version": "1.0.1",
   "description": "Lorenz attractor generator in 3D",
-  "main": "index.js",
+  "main": "lorenz.build.js",
+  "scripts": {
+    "build": "browserify index.js --standalone lorenz > lorenz.build.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/adelriosantiago/lorenz-attractor-3d.git"
@@ -21,5 +24,8 @@
   "bugs": {
     "url": "https://github.com/adelriosantiago/lorenz-attractor-3d/issues"
   },
-  "homepage": "https://github.com/adelriosantiago/lorenz-attractor-3d#readme"
+  "homepage": "https://github.com/adelriosantiago/lorenz-attractor-3d#readme",
+  "devDependencies": {
+    "browserify": "^16.5.2"
+  }
 }
