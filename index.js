@@ -34,7 +34,7 @@ function next(amount = 1) {
     y += stepSize * _ny;
     z += stepSize * _nz;
 
-    _points.push([_nx, _ny, _nz]);
+    _points.push([x, y, z]);
     amount--;
   }
 }
