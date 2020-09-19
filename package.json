@@ -1,6 +1,6 @@
 {
   "name": "lorenz-attractor-3d",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Lorenz attractor generator in 3D",
   "main": "lorenz.build.js",
   "scripts": {
