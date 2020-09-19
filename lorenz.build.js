@@ -35,13 +35,24 @@ function next(amount = 1) {
     y += stepSize * _ny;
     z += stepSize * _nz;
 
-    _points.push([x, y, z]);
+    _points.push(x);
+    _points.push(y);
+    _points.push(z);
     amount--;
   }
 }
 
-function points() {
-  return _points;
+function points(asArray) {
+  if (asArray) {
+    let arr = [];
+    for (let n = 0; n <= _points.length - 3; n += 3) {
+      arr.push([_points[n], _points[n + 1], _points[n + 2]]);
+    }
+
+    return arr;
+  } else {
+    return _points;
+  }
 }
 
 module.exports = { init, next, points };
