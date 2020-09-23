@@ -12,7 +12,8 @@ function init(
   _x = 1,
   _y = 1,
   _z = 1,
-  _stepSize = 0.004
+  _stepSize = 0.004,
+  _bailout = 1e10
 ) {
   _points = [];
   sigma = _sigma;
@@ -22,6 +23,7 @@ function init(
   y = _y;
   z = _z;
   stepSize = _stepSize;
+  bailout = _bailout;
 }
 
 function next(amount = 1) {
@@ -33,6 +35,9 @@ function next(amount = 1) {
     x += stepSize * _nx;
     y += stepSize * _ny;
     z += stepSize * _nz;
+
+    if (Math.abs(x) > bailout || Math.abs(y) > bailout || Math.abs(z) > bailout)
+      break;
 
     _points.push(x);
     _points.push(y);
