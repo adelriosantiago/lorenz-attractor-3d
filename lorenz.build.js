@@ -47,11 +47,11 @@ function next(amount = 1) {
   }
 }
 
-function points(asArray) {
+function points(asArray, type = Array) {
   if (asArray) {
     let arr = [];
     for (let n = 0; n <= _points.length - 3; n += 3) {
-      arr.push([_points[n], _points[n + 1], _points[n + 2]]);
+      arr.push(new type(_points[n], _points[n + 1], _points[n + 2]));
     }
 
     return arr;
