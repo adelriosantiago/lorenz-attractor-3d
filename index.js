@@ -1,5 +1,6 @@
 let _points = [];
 let _nx, _ny, _nz;
+let _cursor;
 
 let x, y, z;
 let sigma, beta, rho;
@@ -9,13 +10,15 @@ function init(
   _sigma = 10.0,
   _beta = 2.667,
   _rho = 28.0,
+  arrType = Float32Array,
+  max = 10000,
   _x = 1,
   _y = 1,
   _z = 1,
   _stepSize = 0.004,
   _bailout = 1e10
 ) {
-  _points = [];
+  _points = new arrType(max * 3);
   sigma = _sigma;
   beta = _beta;
   rho = _rho;
@@ -24,6 +27,7 @@ function init(
   z = _z;
   stepSize = _stepSize;
   bailout = _bailout;
+  _cursor = 0;
 }
 
 function next(amount = 1) {
@@ -39,10 +43,11 @@ function next(amount = 1) {
     if (Math.abs(x) > bailout || Math.abs(y) > bailout || Math.abs(z) > bailout)
       break;
 
-    _points.push(x);
-    _points.push(y);
-    _points.push(z);
+    _points[_cursor] = x;
+    _points[_cursor + 1] = y;
+    _points[_cursor + 2] = z;
     amount--;
+    _cursor += 3;
   }
 }
 
@@ -59,4 +64,8 @@ function points(asArray, type = Array) {
   }
 }
 
-module.exports = { init, next, points };
+function cursor() {
+  return _cursor / 3;
+}
+
+module.exports = { init, next, points, cursor };
