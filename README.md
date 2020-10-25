@@ -4,7 +4,7 @@ This generates the Lorenz attractor points for a third dimensional space.
 
 ## Installation
 
-`npm install lorenz-attractor-3d --save`
+`npm install --save lorenz-attractor-3d`
 
 ## Usage
 
@@ -35,6 +35,5 @@ Init settings:
 
 If you want to visualize the actual points in a third dimensional you can use [Three.JS](https://threejs.org/) or any other 3D engine.
 
-You can also see a practical use of this module here: http://attractors.adelriosantiago.com/
-
+Demo:
 [![attractor](example.gif "Lorenz")](http://attractors.adelriosantiago.com/)
