@@ -36,4 +36,4 @@ Init settings:
 If you want to visualize the actual points in a third dimensional you can use [Three.JS](https://threejs.org/) or any other 3D engine.
 
 Demo:
-[![attractor](example.gif "Lorenz")](http://attractors.adelriosantiago.com/)
+[![attractor](example.gif "Lorenz")](https://lorenz.adelriosantiago.com/)
