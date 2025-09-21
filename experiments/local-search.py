@@ -28,7 +28,7 @@ def measure_space(points):
     return volume
 
 # ---------- Local search with saving results ----------
-def local_search_lorenz_with_snapshots(iterations=10):
+def local_search_lorenz_with_snapshots(iterations=500):
     """Run a simple hill climb and store snapshots of each iteration."""
     sigma, rho, beta = 10.0, 28.0, 8.0/3.0
     best_points = generate_attractor(sigma, rho, beta)
@@ -60,16 +60,37 @@ def local_search_lorenz_with_snapshots(iterations=10):
 
 # ---------- Main ----------
 if __name__ == "__main__":
-    snapshots = local_search_lorenz_with_snapshots(iterations=10)
+    iterations = 500
+    snapshots = local_search_lorenz_with_snapshots(iterations=iterations)
 
-    # Plotting snapshots: 10 rows × 1 column
-    fig, axes = plt.subplots(10, 1, figsize=(10, 60), subplot_kw={'projection':'3d'})
+    # Pick 10 evenly spaced snapshots including the last
+    num_plots = 10
+    indices = np.linspace(0, iterations-1, num_plots, dtype=int)
+    selected_snapshots = [snapshots[i] for i in indices]
+
+    # ---------- Compute global bounds ----------
+    all_points = np.vstack([snap[1] for snap in selected_snapshots])
+    mins = all_points.min(axis=0)
+    maxs = all_points.max(axis=0)
+
+    xlim = (mins[0], maxs[0])
+    ylim = (mins[1], maxs[1])
+    zlim = (mins[2], maxs[2])
+
+    # Plotting selected snapshots: 10 rows × 1 column
+    fig, axes = plt.subplots(num_plots, 1, figsize=(10, 60), subplot_kw={'projection':'3d'})
     plt.subplots_adjust(hspace=0.5)
 
     for idx, ax in enumerate(axes):
-        params, points = snapshots[idx]
+        params, points = selected_snapshots[idx]
         ax.plot(points[:,0], points[:,1], points[:,2], lw=0.5, color='blue')
-        ax.set_title(f"Iteration {idx+1}: σ={params[0]:.2f}, ρ={params[1]:.2f}, β={params[2]:.2f}", fontsize=10)
+        ax.set_title(f"Snapshot {indices[idx]+1}/{iterations}: σ={params[0]:.2f}, ρ={params[1]:.2f}, β={params[2]:.2f}", fontsize=10)
+
+        # Set same axis limits for all plots
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+        ax.set_zlim(zlim)
+
         ax.set_xticks([])
         ax.set_yticks([])
         ax.set_zticks([])
