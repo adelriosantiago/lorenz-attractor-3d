@@ -1,5 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import imageio
+
+spaces = []
 
 # ---------- Lorenz system ----------
 def lorenz(state, sigma, rho, beta):
@@ -47,6 +50,9 @@ def local_search_lorenz_with_snapshots(iterations=500):
 
         points = generate_attractor(new_sigma, new_rho, new_beta)
         space = measure_space(points)
+
+        # Add space to line chart data
+        spaces.append(space)
 
         if space > best_space:
             best_space = space
@@ -96,4 +102,47 @@ if __name__ == "__main__":
         ax.set_zticks([])
 
     plt.tight_layout()
+    plt.show()    
+    
+    # Save the figure
+    fig.savefig("./experiments/lorenz_local_search_snapshots.png", dpi=300)
+
+    # Make a GIF animation
+    
+    with imageio.get_writer('./experiments/lorenz_local_search.gif', mode='I', duration=0.5) as writer:
+        for idx in range(num_plots):
+            fig, ax = plt.subplots(figsize=(8, 6), subplot_kw={'projection':'3d'})
+            params, points = selected_snapshots[idx]
+            ax.plot(points[:,0], points[:,1], points[:,2], lw=0.5, color='blue')
+            ax.set_title(f"Snapshot {indices[idx]+1}/{iterations}: σ={params[0]:.2f}, ρ={params[1]:.2f}, β={params[2]:.2f}", fontsize=10)
+
+            # Set same axis limits for all plots
+            ax.set_xlim(xlim)
+            ax.set_ylim(ylim)
+            ax.set_zlim(zlim)
+
+            ax.set_xticks([])
+            ax.set_yticks([])
+            ax.set_zticks([])
+
+            plt.tight_layout()
+            # Save to a temporary file
+            temp_filename = f"./experiments/_temp_{idx}.png"
+            plt.savefig(temp_filename)
+            plt.close(fig)
+
+            # Read the image and append to GIF
+            image = imageio.imread(temp_filename)
+            writer.append_data(image)
+
+    # Plot the space over iterations
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.plot(range(1, iterations), spaces, marker='o', markersize=2)
+    ax.set_title("Space of Lorenz Attractor Over Iterations")
+    ax.set_xlabel("Iteration")
+    ax.set_ylabel("Space (Volume of Bounding Box)")
+    plt.grid(True)
+    plt.tight_layout()
     plt.show()
+
+
