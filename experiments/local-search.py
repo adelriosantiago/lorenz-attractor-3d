@@ -31,7 +31,7 @@ def measure_space(points):
     return volume
 
 # ---------- Local search with saving results ----------
-def local_search_lorenz_with_snapshots(iterations=500):
+def local_search_lorenz_with_snapshots(iterations=1500):
     """Run a simple hill climb and store snapshots of each iteration."""
     sigma, rho, beta = 10.0, 28.0, 8.0/3.0
     best_points = generate_attractor(sigma, rho, beta)
@@ -41,9 +41,9 @@ def local_search_lorenz_with_snapshots(iterations=500):
 
     for i in range(iterations-1):
         # Perturb parameters
-        new_sigma = sigma + np.random.uniform(-1, 1)
+        new_sigma = sigma + np.random.uniform(-1.5, 1.5)
         new_rho   = rho   + np.random.uniform(-2, 2)
-        new_beta  = beta  + np.random.uniform(-0.1, 0.1)
+        new_beta  = beta  + np.random.uniform(-0.3, 0.3)
         new_sigma = max(0.1, new_sigma)
         new_rho = max(0.1, new_rho)
         new_beta = max(0.01, new_beta)
@@ -69,8 +69,8 @@ if __name__ == "__main__":
     iterations = 500
     snapshots = local_search_lorenz_with_snapshots(iterations=iterations)
 
-    # Pick 10 evenly spaced snapshots including the last
-    num_plots = 10
+    # Pick evenly spaced snapshots including the last
+    num_plots = 30
     indices = np.linspace(0, iterations-1, num_plots, dtype=int)
     selected_snapshots = [snapshots[i] for i in indices]
 
@@ -102,13 +102,12 @@ if __name__ == "__main__":
         ax.set_zticks([])
 
     plt.tight_layout()
-    plt.show()    
+    plt.show()
     
     # Save the figure
     fig.savefig("./experiments/lorenz_local_search_snapshots.png", dpi=300)
 
-    # Make a GIF animation
-    
+    # Make a GIF animation    
     with imageio.get_writer('./experiments/lorenz_local_search.gif', mode='I', duration=0.5) as writer:
         for idx in range(num_plots):
             fig, ax = plt.subplots(figsize=(8, 6), subplot_kw={'projection':'3d'})
@@ -145,4 +144,5 @@ if __name__ == "__main__":
     plt.tight_layout()
     plt.show()
 
-
+    # Save the figure
+    fig.savefig("./experiments/lorenz_space_over_iterations.png", dpi=300)
