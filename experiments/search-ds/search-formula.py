@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 # ---- CONFIG ----
 MODEL = "gemma3:12b"
-N_FORMULAS = 1
+N_FORMULAS = 10
 
 # ---- PROMPT TEMPLATE ----
 prompt_template = """
@@ -37,7 +37,7 @@ def generate_formula_from_ollama(model, prompt):
     return result.stdout.decode()
 
 # ---- DYNAMICAL SYSTEM EVALUATION ----
-def tryGenerate(params, steps=3000, dt=0.01):
+def test_generate(params, steps=3000, dt=0.01):
     state = np.array([1.0, 1.0, 1.0])  # initial conditions
     points = []
     for i in range(steps):
@@ -72,9 +72,10 @@ def formula(state, params):
 
     # Try generating the attractor
     try:
-        points = tryGenerate([random.uniform(-100, 100) for _ in range(30)])
+        random_params = [random.uniform(-100, 100) for _ in range(30)]
+        points = test_generate(random_params)
 
-        if len(points) < 10:
+        if len(points) < 1000:
             print("Too few points produced.")
             continue
 
