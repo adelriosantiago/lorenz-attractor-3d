@@ -2,11 +2,12 @@ import subprocess
 import json
 import numpy as np
 import random
+import math
 import matplotlib.pyplot as plt
 
 # ---- CONFIG ----
 MODEL = "gemma3:12b"
-N_FORMULAS = 10
+N_FORMULAS = 100
 
 # ---- PROMPT TEMPLATE ----
 prompt_template = """
@@ -15,6 +16,7 @@ Generate the formula definition string for a 3D dynamical system.
 The variables are dx, dy, dz, the previous state variables are prev_dx, prev_dy, prev_dz, and the parameters are in the list params[0], params[1], params[2], etc.
 
 Don't be too creative, just try mixing parameters, adding new terms, or changing the order of the params, you can add up to 10 more parameters if needed.
+You can use basic arithmetic operations (+, -, *, /) and simple functions like math.sin, math.cos, math.exp, etc.
 Do NOT include any explanations or imports — just the code.
 
 Here are is a valid example:
@@ -42,8 +44,12 @@ def test_generate(params, steps=3000, dt=0.01):
     points = []
     for i in range(steps):
         state = state + formula(state, params) * dt
-        if i > steps // 10:  # skip transient
-            points.append(state.copy())
+        
+        # Bail out if values explode
+        if np.any(np.abs(state) > 1e6):
+            raise ValueError("Diverged")
+        
+        points.append(state.copy())
     return np.array(points)
 
 # ---- MAIN LOOP ----
