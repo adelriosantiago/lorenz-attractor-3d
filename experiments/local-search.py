@@ -4,13 +4,17 @@ import imageio
 
 spaces = []
 
-# ---------- Lorenz system ----------
-def lorenz(state, sigma, rho, beta):
+# ---------- Dynamical System to Test ----------
+dsTest = """def lorenz(state, sigma, rho, beta):
     x, y, z = state
     dx = sigma * (y - x)
     dy = x * (rho - z) - y
     dz = x * y - beta * z
+
     return np.array([dx, dy, dz])
+"""
+
+exec(dsTest)
 
 def generate_attractor(sigma, rho, beta, steps=8000, dt=0.01):
     """Integrate the Lorenz system and return trajectory points."""
@@ -22,7 +26,7 @@ def generate_attractor(sigma, rho, beta, steps=8000, dt=0.01):
             points.append(state.copy())
     return np.array(points)
 
-# ---------- Space measurement ----------
+# ---------- Space Measurement ----------
 def measure_space(points):
     """Volume of the bounding box of the trajectory."""
     mins = points.min(axis=0)
@@ -30,7 +34,7 @@ def measure_space(points):
     volume = np.prod(maxs - mins)
     return volume
 
-# ---------- Local search with saving results ----------
+# ---------- Local Search ----------
 def local_search_lorenz_with_snapshots(iterations=1500):
     """Run a simple hill climb and store snapshots of each iteration."""
     sigma, rho, beta = 10.0, 28.0, 8.0/3.0
