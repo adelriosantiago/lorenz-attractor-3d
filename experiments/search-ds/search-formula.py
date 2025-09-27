@@ -26,17 +26,17 @@ dy = prev_dx * (params[1] - prev_dz) - prev_dy
 dz = prev_dx * prev_dy - params[2] * prev_dz
 """
 
+
 # ---- FUNCTION TO CALL OLLAMA LOCALLY ----
 def generate_formula_from_ollama(model, prompt):
     """
     Calls a local Ollama model and returns the generated text.
     """
     result = subprocess.run(
-        ["ollama", "run", model],
-        input=prompt.encode(),
-        stdout=subprocess.PIPE
+        ["ollama", "run", model], input=prompt.encode(), stdout=subprocess.PIPE
     )
     return result.stdout.decode()
+
 
 # ---- DYNAMICAL SYSTEM EVALUATION ----
 def test_generate(params, steps=3000, dt=0.01):
@@ -44,13 +44,14 @@ def test_generate(params, steps=3000, dt=0.01):
     points = []
     for i in range(steps):
         state = state + formula(state, params) * dt
-        
+
         # Bail out if values explode
         if np.any(np.abs(state) > 1e6):
             raise ValueError("Diverged")
-        
+
         points.append(state.copy())
     return np.array(points)
+
 
 # ---- MAIN LOOP ----
 for i in range(N_FORMULAS):
@@ -86,8 +87,8 @@ def formula(state, params):
             continue
 
         fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-        ax.plot(points[:,0], points[:,1], points[:,2])
+        ax = fig.add_subplot(111, projection="3d")
+        ax.plot(points[:, 0], points[:, 1], points[:, 2])
         ax.set_title(f"Formula {i+1}")
         plt.show()
 
