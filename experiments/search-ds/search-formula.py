@@ -1,6 +1,7 @@
 import subprocess
 import json
 import numpy as np
+from itertools import product
 import random
 import math
 import matplotlib.pyplot as plt
@@ -15,7 +16,9 @@ def formula(state, params):
     dz = params[4] * prev_dx * prev_dy - params[5] * prev_dz + params[6] * prev_dx
     return np.array([dx, dy, dz])"""
 USE_FIXED_FORMULA = True  # Set to True to use the fixed formula
-PARAM_ITERATIONS = 300  # Number of parameters to generate
+PARAM_MAX_ABS = 100  # Maximum absolute value for parameters
+PARAM_COUNT = 3  # How many values per axis
+PARAM_AMT = 7  # Number of params
 LLM_MODEL = "gemma3:12b"
 
 # ---- PROMPT TEMPLATE ----
@@ -36,7 +39,6 @@ dz = prev_dx * prev_dy - params[2] * prev_dz
 """
 
 
-# ---- FUNCTION TO CALL OLLAMA LOCALLY ----
 def generate_formula_from_ollama(model, prompt):
     """
     Calls a local Ollama model and returns the generated text.
@@ -69,7 +71,7 @@ while True:
         formula_to_test = FIXED_FORMULA
         print("Using fixed formula:\n", formula_to_test)
     else:
-        print(f"\n=== Generating formula {i+1} ===")
+        print(f"\nGenerating formula with LLM ({i+1})")
 
         model_output = generate_formula_from_ollama(LLM_MODEL, prompt_template).strip()
         idented_output = "\n".join("    " + line for line in model_output.splitlines())
@@ -83,22 +85,27 @@ def formula(state, params):
 
         print("Generated formula:\n", formula_to_test)
 
-    # Exec the formula safely
+    # Test defining the formula
     try:
         exec(formula_to_test, globals())
     except Exception as e:
         print("Error executing formula:", e)
         continue
 
-    for i in range(PARAM_ITERATIONS):
-        # Generate random parameters
-        params = [random.uniform(-100, 100) for _ in range(30)]
-        print(f"Iterating: {i}")
+    # Param space exploration
+    param_space = [
+        list(p)
+        for p in product(
+            np.linspace(-PARAM_MAX_ABS, PARAM_MAX_ABS, PARAM_COUNT), repeat=PARAM_AMT
+        )
+    ]
 
-        # Try generating the attractor
+    for params in param_space:
+        # Generate random parameters
+        print(f"Iterating: {params}")
+
         try:
-            random_params = [random.uniform(-100, 100) for _ in range(30)]
-            points = test_generate(random_params)
+            points = test_generate(params)  # Try generating the attractor
 
             if len(points) < 1000:
                 print("Too few points produced.")
@@ -107,7 +114,7 @@ def formula(state, params):
             fig = plt.figure()
             ax = fig.add_subplot(111, projection="3d")
             ax.plot(points[:, 0], points[:, 1], points[:, 2])
-            ax.set_title(f"Formula {i+1}")
+            ax.set_title(f"Params: {params}")
             plt.show()
 
         except Exception as e:
