@@ -4,10 +4,19 @@ import numpy as np
 import random
 import math
 import matplotlib.pyplot as plt
+import time
 
-# ---- CONFIG ----
-MODEL = "gemma3:12b"
-N_FORMULAS = 100
+# Select a fixed formula for testing, or set to None to generate new ones indefinitely
+FIXED_FORMULA = """
+def formula(state, params):
+    prev_dx, prev_dy, prev_dz = state
+    dx = params[0] * prev_dy + params[1] * prev_dz
+    dy = -params[2] * prev_dx + params[3] * prev_dy
+    dz = params[4] * prev_dx * prev_dy - params[5] * prev_dz + params[6] * prev_dx
+    return np.array([dx, dy, dz])"""
+USE_FIXED_FORMULA = True  # Set to True to use the fixed formula
+PARAM_ITERATIONS = 300  # Number of parameters to generate
+LLM_MODEL = "gemma3:12b"
 
 # ---- PROMPT TEMPLATE ----
 prompt_template = """
@@ -54,43 +63,57 @@ def test_generate(params, steps=3000, dt=0.01):
 
 
 # ---- MAIN LOOP ----
-for i in range(N_FORMULAS):
-    print(f"\n=== Generating formula {i+1} ===")
+while True:
+    if USE_FIXED_FORMULA:
+        # Use the fixed formula for testing
+        formula_to_test = FIXED_FORMULA
+        print("Using fixed formula:\n", formula_to_test)
+    else:
+        print(f"\n=== Generating formula {i+1} ===")
 
-    model_output = generate_formula_from_ollama(MODEL, prompt_template).strip()
-    idented_output = "\n".join("    " + line for line in model_output.splitlines())
-    print("Raw model output:", model_output)
+        model_output = generate_formula_from_ollama(LLM_MODEL, prompt_template).strip()
+        idented_output = "\n".join("    " + line for line in model_output.splitlines())
+        print("Raw model output:", model_output)
 
-    new_formula_str = f"""
+        formula_to_test = f"""
 def formula(state, params):
     prev_dx, prev_dy, prev_dz = state
 {idented_output}
-    return np.array([dx, dy, dz])
-    """
+    return np.array([dx, dy, dz])"""
 
-    print("Generated formula:\n", new_formula_str)
+        print("Generated formula:\n", formula_to_test)
 
     # Exec the formula safely
     try:
-        exec(new_formula_str, globals())
+        exec(formula_to_test, globals())
     except Exception as e:
         print("Error executing formula:", e)
         continue
 
-    # Try generating the attractor
-    try:
-        random_params = [random.uniform(-100, 100) for _ in range(30)]
-        points = test_generate(random_params)
+    for i in range(PARAM_ITERATIONS):
+        # Generate random parameters
+        params = [random.uniform(-100, 100) for _ in range(30)]
+        print(f"Iterating: {i}")
 
-        if len(points) < 1000:
-            print("Too few points produced.")
-            continue
+        # Try generating the attractor
+        try:
+            random_params = [random.uniform(-100, 100) for _ in range(30)]
+            points = test_generate(random_params)
 
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection="3d")
-        ax.plot(points[:, 0], points[:, 1], points[:, 2])
-        ax.set_title(f"Formula {i+1}")
-        plt.show()
+            if len(points) < 1000:
+                print("Too few points produced.")
+                continue
 
-    except Exception as e:
-        print("Error running formula:", e)
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection="3d")
+            ax.plot(points[:, 0], points[:, 1], points[:, 2])
+            ax.set_title(f"Formula {i+1}")
+            plt.show()
+
+        except Exception as e:
+            print("Error running formula:", e)
+
+    if USE_FIXED_FORMULA:
+        break  # Exit after one iteration if using fixed formula
+
+    time.sleep(60)
