@@ -21,12 +21,3 @@ def generate_plot(points, filename="3d_plot_output.png"):
     ax.add_collection(lc)
 
     plt.savefig(filename, dpi=300)
-
-
-# Suppose we have N sets, each with M points
-N = 10
-M = 3000
-arrays = [
-    np.random.rand(M, 3) + i * 0.01 for i in range(N)
-]  # example data with offsets
-generate_plot(arrays)
