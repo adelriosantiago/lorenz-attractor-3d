@@ -6,19 +6,23 @@ import random
 import math
 import matplotlib.pyplot as plt
 import time
+from plot_3d_segments import generate_plot
 
 # Select a fixed formula for testing, or set to None to generate new ones indefinitely
 FIXED_FORMULA = """
 def formula(state, params):
     prev_dx, prev_dy, prev_dz = state
-    dx = params[0] * prev_dy + params[1] * prev_dz
-    dy = -params[2] * prev_dx + params[3] * prev_dy
-    dz = params[4] * prev_dx * prev_dy - params[5] * prev_dz + params[6] * prev_dx
+    dx = params[0] * (prev_dy - prev_dx)
+    dy = prev_dx * (params[1] - prev_dz) - prev_dy
+    dz = prev_dx * prev_dy - params[2] * prev_dz
     return np.array([dx, dy, dz])"""
 USE_FIXED_FORMULA = True  # Set to True to use the fixed formula
-PARAM_MAX_ABS = 100  # Maximum absolute value for parameters
+ATTRACTOR_STEPS = 1000  # Number of steps to simulate for each parameter set
+ATTRACTOR_DT = 0.01  # Time step for the simulation
+ATTRACTOR_SPACE_BAILOUT = 50  # Bailout threshold for attractor values
+PARAM_MAX_ABS = 10  # Maximum absolute value for parameters
 PARAM_COUNT = 3  # How many values per axis
-PARAM_AMT = 7  # Number of params
+PARAM_AMT = 3  # Number of params
 LLM_MODEL = "gemma3:12b"
 
 # ---- PROMPT TEMPLATE ----
@@ -50,14 +54,14 @@ def generate_formula_from_ollama(model, prompt):
 
 
 # ---- DYNAMICAL SYSTEM EVALUATION ----
-def test_generate(params, steps=3000, dt=0.01):
+def test_generate(params):
     state = np.array([1.0, 1.0, 1.0])  # initial conditions
     points = []
-    for i in range(steps):
-        state = state + formula(state, params) * dt
+    for i in range(ATTRACTOR_STEPS):
+        state = state + formula(state, params) * ATTRACTOR_DT
 
         # Bail out if values explode
-        if np.any(np.abs(state) > 1e6):
+        if np.any(np.abs(state) > ATTRACTOR_SPACE_BAILOUT):
             raise ValueError("Diverged")
 
         points.append(state.copy())
@@ -71,11 +75,8 @@ while True:
         formula_to_test = FIXED_FORMULA
         print("Using fixed formula:\n", formula_to_test)
     else:
-        print(f"\nGenerating formula with LLM ({i+1})")
-
         model_output = generate_formula_from_ollama(LLM_MODEL, prompt_template).strip()
         idented_output = "\n".join("    " + line for line in model_output.splitlines())
-        print("Raw model output:", model_output)
 
         formula_to_test = f"""
 def formula(state, params):
@@ -100,25 +101,24 @@ def formula(state, params):
         )
     ]
 
-    for params in param_space:
+    attractor_space = []
+    for param_list in param_space:
         # Generate random parameters
-        print(f"Iterating: {params}")
+        print(f"Iterating: {param_list}")
 
         try:
-            points = test_generate(params)  # Try generating the attractor
+            points = test_generate(param_list)  # Try generating the attractor
 
-            if len(points) < 1000:
-                print("Too few points produced.")
-                continue
-
-            fig = plt.figure()
-            ax = fig.add_subplot(111, projection="3d")
-            ax.plot(points[:, 0], points[:, 1], points[:, 2])
-            ax.set_title(f"Params: {params}")
-            plt.show()
+            # Push points to attractor space
+            attractor_space.append(points)
 
         except Exception as e:
             print("Error running formula:", e)
+
+    # Plot the points using the imported function
+    generate_plot(
+        attractor_space, ATTRACTOR_SPACE_BAILOUT // 2, filename=f"3d_plot.png"
+    )
 
     if USE_FIXED_FORMULA:
         break  # Exit after one iteration if using fixed formula

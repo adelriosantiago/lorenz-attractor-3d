@@ -1,7 +1,7 @@
 ---
-dx = params[0] * prev_dy + params[1] * prev_dz
-dy = prev_dx * params[2] - params[3] * prev_dy
-dz = params[4] * prev_dx * prev_dy - prev_dz + params[5]
+dx = params[0] * (prev_dy - prev_dx)
+dy = prev_dx * (params[1] - prev_dz) - prev_dy
+dz = prev_dx * prev_dy - params[2] * prev_dz
 ---
 dx = params[0] * prev_dy + params[1] * prev_dz
 dy = prev_dx * params[2] - params[3] * prev_dy

@@ -1,30 +1,32 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import imageio
+import random
 
 spaces = []
 
 # ---------- Dynamical System to Test ----------
-dsTest = """def lorenz(state, sigma, rho, beta):
-    x, y, z = state
-    dx = sigma * (y - x)
-    dy = x * (rho - z) - y
-    dz = x * y - beta * z
-
+dsTest = """def formula(state, params):
+    prev_dx, prev_dy, prev_dz = state
+    dx = params[0] * prev_dy + params[1] * prev_dz
+    dy = params[2] * prev_dx - params[3] * prev_dy
+    dz = prev_dx * params[4] - params[5] * prev_dz + params[6] * prev_dy
     return np.array([dx, dy, dz])
 """
 
 exec(dsTest)
 
-def generate_attractor(sigma, rho, beta, steps=8000, dt=0.01):
+
+def generate_attractor(params, steps=8000, dt=0.01):
     """Integrate the Lorenz system and return trajectory points."""
     state = np.array([1.0, 1.0, 1.0])  # initial conditions
     points = []
     for i in range(steps):
-        state = state + lorenz(state, sigma, rho, beta) * dt
+        state = state + formula(state, params) * dt
         if i > 500:  # skip transient
             points.append(state.copy())
     return np.array(points)
+
 
 # ---------- Space Measurement ----------
 def measure_space(points):
@@ -34,25 +36,20 @@ def measure_space(points):
     volume = np.prod(maxs - mins)
     return volume
 
+
 # ---------- Local Search ----------
 def local_search_lorenz_with_snapshots(iterations=1500):
     """Run a simple hill climb and store snapshots of each iteration."""
-    sigma, rho, beta = 10.0, 28.0, 8.0/3.0
-    best_points = generate_attractor(sigma, rho, beta)
+    params = [random.uniform(-100, 100) for _ in range(30)]
+    best_points = generate_attractor(params)
     best_space = measure_space(best_points)
-    best_params = (sigma, rho, beta)
+    best_params = params
     snapshots = [(best_params, best_points)]
 
-    for i in range(iterations-1):
-        # Perturb parameters
-        new_sigma = sigma + np.random.uniform(-1.5, 1.5)
-        new_rho   = rho   + np.random.uniform(-2, 2)
-        new_beta  = beta  + np.random.uniform(-0.3, 0.3)
-        new_sigma = max(0.1, new_sigma)
-        new_rho = max(0.1, new_rho)
-        new_beta = max(0.01, new_beta)
-
-        points = generate_attractor(new_sigma, new_rho, new_beta)
+    for i in range(iterations):
+        # Perturb parameter array
+        new_params = [p + random.uniform(-1.5, 1.5) for p in params]
+        points = generate_attractor(new_params)
         space = measure_space(points)
 
         # Add space to line chart data
@@ -60,13 +57,14 @@ def local_search_lorenz_with_snapshots(iterations=1500):
 
         if space > best_space:
             best_space = space
-            best_params = (new_sigma, new_rho, new_beta)
+            best_params = params
             best_points = points
-            sigma, rho, beta = new_sigma, new_rho, new_beta
+            params = new_params
 
-        snapshots.append(((sigma, rho, beta), best_points.copy()))
+        snapshots.append((params, best_points.copy()))
 
     return snapshots
+
 
 # ---------- Main ----------
 if __name__ == "__main__":
@@ -75,7 +73,7 @@ if __name__ == "__main__":
 
     # Pick evenly spaced snapshots including the last
     num_plots = 30
-    indices = np.linspace(0, iterations-1, num_plots, dtype=int)
+    indices = np.linspace(0, iterations - 1, num_plots, dtype=int)
     selected_snapshots = [snapshots[i] for i in indices]
 
     # ---------- Compute global bounds ----------
@@ -87,37 +85,18 @@ if __name__ == "__main__":
     ylim = (mins[1], maxs[1])
     zlim = (mins[2], maxs[2])
 
-    # Plotting selected snapshots: 10 rows × 1 column
-    fig, axes = plt.subplots(num_plots, 1, figsize=(10, 60), subplot_kw={'projection':'3d'})
-    plt.subplots_adjust(hspace=0.5)
-
-    for idx, ax in enumerate(axes):
-        params, points = selected_snapshots[idx]
-        ax.plot(points[:,0], points[:,1], points[:,2], lw=0.5, color='blue')
-        ax.set_title(f"Snapshot {indices[idx]+1}/{iterations}: σ={params[0]:.2f}, ρ={params[1]:.2f}, β={params[2]:.2f}", fontsize=10)
-
-        # Set same axis limits for all plots
-        ax.set_xlim(xlim)
-        ax.set_ylim(ylim)
-        ax.set_zlim(zlim)
-
-        ax.set_xticks([])
-        ax.set_yticks([])
-        ax.set_zticks([])
-
-    plt.tight_layout()
-    plt.show()
-    
-    # Save the figure
-    fig.savefig("./experiments/lorenz_local_search_snapshots.png", dpi=300)
-
-    # Make a GIF animation    
-    with imageio.get_writer('./experiments/lorenz_local_search.gif', mode='I', duration=0.5) as writer:
+    # Make a GIF animation
+    with imageio.get_writer(
+        "./experiments/lorenz_local_search.gif", mode="I", duration=0.5
+    ) as writer:
         for idx in range(num_plots):
-            fig, ax = plt.subplots(figsize=(8, 6), subplot_kw={'projection':'3d'})
+            fig, ax = plt.subplots(figsize=(8, 6), subplot_kw={"projection": "3d"})
             params, points = selected_snapshots[idx]
-            ax.plot(points[:,0], points[:,1], points[:,2], lw=0.5, color='blue')
-            ax.set_title(f"Snapshot {indices[idx]+1}/{iterations}: σ={params[0]:.2f}, ρ={params[1]:.2f}, β={params[2]:.2f}", fontsize=10)
+            ax.plot(points[:, 0], points[:, 1], points[:, 2], lw=0.5, color="blue")
+            ax.set_title(
+                f"Snapshot {params} at Iteration {indices[idx]+1}/{iterations}",
+                fontsize=10,
+            )
 
             # Set same axis limits for all plots
             ax.set_xlim(xlim)
@@ -140,7 +119,7 @@ if __name__ == "__main__":
 
     # Plot the space over iterations
     fig, ax = plt.subplots(figsize=(10, 5))
-    ax.plot(range(1, iterations), spaces, marker='o', markersize=2)
+    ax.plot(range(0, iterations), spaces, marker="o", markersize=2)
     ax.set_title("Space of Lorenz Attractor Over Iterations")
     ax.set_xlabel("Iteration")
     ax.set_ylabel("Space (Volume of Bounding Box)")
