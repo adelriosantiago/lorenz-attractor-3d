@@ -13,13 +13,8 @@ def generate_plot(points, filename="3d_plot_output.png"):
 
     # Shift each dataset farther apart
     for i, arr in enumerate(points):
-        # shift each set by 2*MAX_ABS*i in X (or any axis you want)
-        # shift = np.array([2 * MAX_ABS, 0, 0])  # shifting along X axis
-        # shifted_arr = arr + shift
-        shifted_arr = arr
-
         # Build segments for Line3DCollection
-        segs = np.array([shifted_arr[:-1], shifted_arr[1:]]).transpose(1, 0, 2)
+        segs = np.array([arr[:-1], arr[1:]]).transpose(1, 0, 2)
         segments.extend(segs)
 
     fig = plt.figure()

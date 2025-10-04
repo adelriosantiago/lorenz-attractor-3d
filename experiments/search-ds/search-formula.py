@@ -118,6 +118,7 @@ def formula(state, params):
             points = test_generate(params_list)  # Try generating the attractor
             # Shift by all three params to separate in space
             attractor_lines.append(points + np.array(params_list) * 10)
+            # attractor_lines.append(points) # Add without shift
 
         except Exception as e:
             print("Error running formula:", e)
