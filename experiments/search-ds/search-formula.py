@@ -19,8 +19,10 @@ def formula(state, params):
 USE_FIXED_FORMULA = True  # Set to True to use the fixed formula
 ATTRACTOR_STEPS = 1000  # Number of steps to simulate for each parameter set
 ATTRACTOR_DT = 0.01  # Time step for the simulation
-ATTRACTOR_SPACE_BAILOUT = 50  # Bailout threshold for attractor values
-PARAM_MAX_ABS = 10  # Maximum absolute value for parameters
+ATTRACTOR_SPACE_BAILOUT = 1e4  # Bailout threshold for attractor values
+
+INITIAL_POS = [1.0, 1.0, 1.0]  # Initial position for the attractor
+PARAM_MAX_ABS = 30  # Add +- this value around the center
 PARAM_COUNT = 3  # How many values per axis
 PARAM_AMT = 3  # Number of params
 LLM_MODEL = "gemma3:12b"
@@ -55,7 +57,7 @@ def generate_formula_from_ollama(model, prompt):
 
 # ---- DYNAMICAL SYSTEM EVALUATION ----
 def test_generate(params):
-    state = np.array([1.0, 1.0, 1.0])  # initial conditions
+    state = np.array(INITIAL_POS)  # initial conditions
     points = []
     for i in range(ATTRACTOR_STEPS):
         state = state + formula(state, params) * ATTRACTOR_DT
@@ -94,31 +96,34 @@ def formula(state, params):
         continue
 
     # Param space exploration
-    param_space = [
+    params_space = [
         list(p)
         for p in product(
             np.linspace(-PARAM_MAX_ABS, PARAM_MAX_ABS, PARAM_COUNT), repeat=PARAM_AMT
         )
     ]
 
-    attractor_space = []
-    for param_list in param_space:
+    # params_space = [
+    #     [10.0 + -10, 28.0 + -10, -10 + 8.0 / 3.0],
+    #     [10.0, 28.0, 8.0 / 3.0],
+    #     [10.0 + 10, 28.0 + 10, 10 + 8.0 / 3.0],
+    # ]
+
+    attractor_lines = []
+    for params_list in params_space:
         # Generate random parameters
-        print(f"Iterating: {param_list}")
+        print(f"Iterating: {params_list}")
 
         try:
-            points = test_generate(param_list)  # Try generating the attractor
-
-            # Push points to attractor space
-            attractor_space.append(points)
+            points = test_generate(params_list)  # Try generating the attractor
+            # Shift by all three params to separate in space
+            attractor_lines.append(points + np.array(params_list) * 10)
 
         except Exception as e:
             print("Error running formula:", e)
 
     # Plot the points using the imported function
-    generate_plot(
-        attractor_space, ATTRACTOR_SPACE_BAILOUT // 2, filename=f"3d_plot.png"
-    )
+    generate_plot(attractor_lines)
 
     if USE_FIXED_FORMULA:
         break  # Exit after one iteration if using fixed formula
